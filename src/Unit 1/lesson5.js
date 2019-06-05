@@ -6,11 +6,6 @@ const port = 3000, //forgot about comma separated variables
   { routeMap } = require("./lesson5routes.js");
 
 app.on("request", (req, res) => {
-  /*
-    • 1 Log the HTTP method used.
-    • 2 Log the request URL.
-    • 3 Log request headers.
-  */
   let body = [];
   req.on("data", bodyData => {
     body.push(bodyData);
