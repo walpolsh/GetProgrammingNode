@@ -1,5 +1,5 @@
 const MongoDB = require("mongodb").MongoClient;
-const Subscriber = require("./models/subscriber");
+const Subscriber = require("./models/subscribers");
 const mongoose = require("mongoose");
 const dbURL = "mongodb://localhost:27017";
 const dbName = "TestDB";

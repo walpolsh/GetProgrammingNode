@@ -1,0 +1,12 @@
+const express = require("express");
+const errorController = require("./errorController");
+const controller = require("./controller");
+const app = express();
+const port = 3000;
+app.set("port", process.env.PORT || 3000);
+app.use(express.static("public"));
+app.use(errorController.logErrors);
+app.use(errorController.respondInternalError);
+app.use(errorController.respondNoResourceFound);
+app.get("/", controller.sendReqHome);
+app.listen(port, controller["serverRunningMessage"](app.get("port")));
