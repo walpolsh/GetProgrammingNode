@@ -1,3 +1,5 @@
+"use strict";
+
 var courses = [
   {
     title: "Event Driven Cakes",
@@ -13,9 +15,11 @@ var courses = [
   }
 ];
 
-exports.showCourses = (req, res) => {
-  res.render("courses", {
-    offeredCourses: courses
-  });
+//Export object literal with all controller actions
+module.exports = {
+  showCourses: (req, res) => {
+    res.render("courses", {
+      offeredCourses: courses
+    });
+  }
 };
-exports.showHome = (req, res) => (req, res) => res.render("index");

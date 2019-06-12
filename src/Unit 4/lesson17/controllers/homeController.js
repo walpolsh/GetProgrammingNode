@@ -18,4 +18,3 @@ exports.showCourses = (req, res) => {
     offeredCourses: courses
   });
 };
-exports.showHome = (req, res) => (req, res) => res.render("index");
