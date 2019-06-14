@@ -1,52 +1,54 @@
-'use strict';
+"use strict";
 
-const mongoose = require('mongoose'),
-  {Schema} = mongoose,
-  Subscriber = require('./subscriber');
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
+const Subscriber = require("./subscriber");
+const passportLocalMongoose = require("passport-local-mongoose");
 
-var userSchema = new Schema({
-  name: {
-    first: {
-      type: String,
-      trim: true
+var userSchema = new Schema(
+  {
+    name: {
+      first: {
+        type: String,
+        trim: true
+      },
+      last: {
+        type: String,
+        trim: true
+      }
     },
-    last: {
+    email: {
       type: String,
-      trim: true
+      required: true,
+      lowercase: true,
+      unique: true
+    },
+    zipCode: {
+      type: Number,
+      min: [10000, "Zip code too short"],
+      max: 99999
+    },
+    courses: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Course"
+      }
+    ],
+    subscribedAccount: {
+      type: Schema.Types.ObjectId,
+      ref: "Subscriber"
     }
   },
-  email: {
-    type: String,
-    required: true,
-    lowercase: true,
-    unique: true
-  },
-  zipCode: {
-    type: Number,
-    min: [10000, 'Zip code too short'],
-    max: 99999
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  courses: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Course'
-  }],
-  subscribedAccount: {
-    type: Schema.Types.ObjectId,
-    ref: 'Subscriber'
+  {
+    timestamps: true
   }
-}, {
-  timestamps: true
-});
+);
 
-userSchema.virtual('fullName').get(function () {
+userSchema.virtual("fullName").get(function() {
   return `${this.name.first} ${this.name.last}`;
 });
 
-userSchema.pre('save', function (next) {
+userSchema.pre("save", function(next) {
   let user = this;
   if (user.subscribedAccount === undefined) {
     Subscriber.findOne({
@@ -65,4 +67,8 @@ userSchema.pre('save', function (next) {
   }
 });
 
-module.exports = mongoose.model('User', userSchema);
+userSchema.plugin(passportLocalMongoose, {
+  usernameField: "email"
+});
+
+module.exports = mongoose.model("User", userSchema);
