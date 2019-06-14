@@ -3,7 +3,7 @@
 const mongoose = require("mongoose"),
   { Schema } = mongoose,
   Subscriber = require("./subscriber");
-
+const bcrypt = require("bcrypt");
 var userSchema = new Schema(
   {
     name: {
@@ -53,21 +53,20 @@ userSchema.virtual("fullName").get(function() {
 
 userSchema.pre("save", function(next) {
   let user = this;
-  if (user.subscribedAccount === undefined) {
-    Subscriber.findOne({
-      email: user.email
+  bcrypt
+    .hash(user.password, 10)
+    .then(hash => {
+      user.password = hash;
+      next();
     })
-      .then(subscriber => {
-        user.subscribedAccount = subscriber;
-        next();
-      })
-      .catch(error => {
-        console.log(`Error in connecting subscriber: ${error.message}`);
-        next(error);
-      });
-  } else {
-    next();
-  }
+    .catch(err => {
+      console.log(`Error in hashing password: ${err.message}`);
+      next(err);
+    });
 });
+userSchema.methods.passwordComparison = function(inputPassword) {
+  let user = this;
+  return bcrypt.compare(inputPassword, user.password);
+};
 
 module.exports = mongoose.model("User", userSchema);

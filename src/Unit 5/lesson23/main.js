@@ -1,20 +1,19 @@
-"use strict";
-
-const express = require("express"),
-  layouts = require("express-ejs-layouts"),
-  app = express(),
-  router = express.Router(),
-  homeController = require("./controllers/homeController"),
-  errorController = require("./controllers/errorController"),
-  subscribersController = require("./controllers/subscribersController"),
-  coursesController = require("./controllers/coursesController"),
-  usersController = require("./controllers/usersController"),
-  bodyParser = require("body-parser"),
-  mongoose = require("mongoose"),
-  methodOverride = require("method-override"),
-  cookieParser = require("cookie-parser"),
-  connectFlash = require("connect-flash"),
-  expressSession = require("express-session");
+const express = require("express");
+const layouts = require("express-ejs-layouts");
+const app = express();
+const router = express.Router();
+const homeController = require("./controllers/homeController");
+const errorController = require("./controllers/errorController");
+const subscribersController = require("./controllers/subscribersController");
+const coursesController = require("./controllers/coursesController");
+const usersController = require("./controllers/usersController");
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
+const methodOverride = require("method-override");
+const cookieParser = require("cookie-parser");
+const connectFlash = require("connect-flash");
+const expressSession = require("express-session");
+const expressValidator = require("express-validator");
 
 mongoose.Promise = global.Promise;
 
@@ -62,6 +61,8 @@ router.use(
   })
 );
 router.use(bodyParser.json());
+router.use(expressValidator()); //You need to add this line after the line where express.json() and express.urlencoded() middleware is introduced,
+// because the request body must be parsed before you can validate it.
 
 router.get("/", homeController.index);
 
@@ -69,10 +70,15 @@ router.get("/users", usersController.index, usersController.indexView);
 router.get("/users/new", usersController.new);
 router.post(
   "/users/create",
+  usersController.validate,
   usersController.create,
   usersController.redirectView
 );
-//Why does the placement of the /users/login route matter in main.js?
+
+// You’ll want to add these routes above the lines where you have your show and edit routes;
+// otherwise, Express.js will mistake the word login in the path for a user ID and try to find that.
+// When you add the route above those lines, your application will identify the full path as the login route before looking for a user ID in the URL.
+// Why does the placement of the /users/login route matter in main.js?
 // Because you have routes that handle parameters in the URL, if those routes (such as /users/:id)
 // come first, Express.js will treat a request to /users/login as a request to the user’s show page,
 //  where login is the :id. Order matters: if the /users/login route comes first,

@@ -126,7 +126,21 @@ module.exports = {
       email: req.body.email
     })
       .then(user => {
-        if (user && user.password === req.body.password) {
+        if (user) {
+          user.passwordComparison(req.body.password).then(passwordsMatch => {
+            if (passwordsMatch) {
+              res.locals.redirect`/users/${user._id}`;
+              res.flash("success", `${user.fullName} logged in successfully`);
+              res.locals.user = user;
+            } else {
+              req.flash(
+                "error",
+                "failed to log in user account: Incorrect Password"
+              );
+              res.locals.redirect = "/users/login";
+            }
+            next();
+          });
           // Compare the form password with the database password
           res.locals.redirect = `/users/${user._id}`;
           req.flash("success", `${user.fullName}'s logged in successfully!`);
@@ -142,9 +156,42 @@ module.exports = {
         }
       })
       .catch(err => {
-        console.log(`Error logging in the user: ${err.message}`);
-        next();
+        console.log(`Failed to log in user account: User
+        account not found. ${err.message}`);
+        res.locals.redirect = "/users/login";
+        next(err);
       });
+  },
+  validate: (req, res, next) => {
+    req
+      .sanitizeBody("email")
+      .normalizeEmail({
+        all_lowercase: true
+      })
+      .trim();
+    req.check("email", "Email is invalid").isEmail();
+    req
+      .check("zipCode", "Zip code is invalid")
+      .notEmpty()
+      .isInt()
+      .isLength({
+        min: 5,
+        max: 5
+      })
+      .equals(req.body.zipCode);
+    req.check("password", "password cannot be empty").notEmpty();
+
+    req.getValidationResult().then(err => {
+      if (!error.isEmpty()) {
+        let messages = err.array().map(e => e.msg);
+        req.skip = true;
+        req.flash("error", messages.join(" and "));
+        res.locals.redirect = "/users/new";
+        next();
+      } else {
+        next();
+      }
+    });
   },
   redirectView: (req, res, next) => {
     let redirectPath = res.locals.redirect;
